@@ -1,0 +1,12 @@
+{
+    "sites" : 
+    [
+        "http://google.com.br",
+        "https://random-status-code.herokuapp.com/",
+        "http://youtube.com.br",
+        "https://twitter.com/",
+        "https://intelitrader.com.br",
+        "non-existent-site",
+        "https://AAAAbbbBB.com.br"
+    ]
+}
