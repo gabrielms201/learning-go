@@ -6,10 +6,16 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
+	"time"
+)
+
+var (
+	config = getConfig("../cfg/monitor.json")
 )
 
 func main() {
 	for {
+
 		menu()
 	}
 }
@@ -20,10 +26,9 @@ func menu() {
 	option := scanCommand()
 	switch option { // Here we don't have to provide the break statement
 	case 1:
-		site := getConfig("../cfg/monitor.json")
-		startMonitoring(site.Site)
+		startMonitoring()
 	case 2:
-		showLogs()
+		showLogs(config.LogPath)
 	case 0:
 		os.Exit(0)
 	default:
@@ -49,47 +54,69 @@ func showMenu() {
 }
 
 // < --- Monitor functions --- >
-func startMonitoring(site []string) {
+func startMonitoring() {
 	// I'm watching you
 	fmt.Println("Started monitoring...")
-	sucess, failed := 0, 0
-	for index, site := range site {
-		fmt.Printf("[%d] -> ", index+1)
-		resp, err := http.Get(site)
-		// Validate response and errors
-		if validateGet(resp, err) {
-			sucess++
-		} else {
-			failed++
+	for i := 0; i < config.CheckNumber; i++ {
+		fmt.Printf("Check Number: (%d):\n", i)
+		sucess, failed := 0, 0
+		for index, site := range config.Site {
+			fmt.Printf("(%d)[%d] -> ", i, index+1)
+			resp, err := http.Get(site)
+			// Validate response and errors
+			if validateGet(resp, err) {
+				writeLog(site, true)
+				sucess++
+			} else {
+				writeLog(site, false)
+				failed++
+			}
 		}
+		fmt.Printf("Number of sucess requests: %d, number of failed requests: %d. Total: %d \n", sucess, failed, sucess+failed)
+		fmt.Println("Waiting...")
+		time.Sleep(time.Duration(config.DelayAfterCheck) * time.Second)
 	}
-	fmt.Printf("Number of sucess requests: %d, number of failed requests: %d. Total: %d \n", sucess, failed, sucess+failed)
 }
 func validateGet(resp *http.Response, err error) bool {
 	// Check for any error
 	if err != nil {
-		fmt.Println("An error occurred:", err)
+		str := fmt.Sprintf("An error occurred: %s \n", err)
+		fmt.Println(str)
+		verboseLog(str)
 		return false
 	}
 	// Check for the get status code
 	if resp.StatusCode != 200 {
-		fmt.Printf("Couldn't connect to %s, status code: %d \n", resp.Request.URL, resp.StatusCode)
+		str := fmt.Sprintf("Couldn't connect to %s, status code: %d \n", resp.Request.URL, resp.StatusCode)
+		fmt.Printf(str)
+		verboseLog(str)
 		return false
 	}
 
-	fmt.Printf("Successfully connected to %s, with status code %d \n", resp.Request.URL, resp.StatusCode)
+	str := fmt.Sprintf("Successfully connected to %s, with status code %d \n", resp.Request.URL, resp.StatusCode)
+	fmt.Printf(str)
+	verboseLog(str)
 	return true
 }
 
 // < --- Log Functions --- >
-func showLogs() {
+func showLogs(logPath string) {
 	// No logs, no crimes.
 	fmt.Println("Here we have some logs...")
+	file, err := ioutil.ReadFile(logPath)
+	if err != nil {
+		fmt.Println("Error reading log file:", err)
+	}
+	fmt.Println(string(file))
 }
 
 // < --- Config --- >
 type Config struct {
-	Site []string `json:"sites"`
+	Site            []string `json:"sites"`
+	CheckNumber     int      `json:"check_number"`
+	DelayAfterCheck int      `json:"delay_after_check"`
+	LogPath         string   `json:"log_path"`
+	FullLogPath     string   `json:"full_log_path"`
 }
 
 func getConfig(filePath string) Config {
@@ -103,4 +130,28 @@ func getConfig(filePath string) Config {
 	var config Config
 	json.Unmarshal(byteValue, &config)
 	return config
+}
+
+func writeLog(site string, status bool) {
+	file, err := os.OpenFile(config.LogPath, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
+	if err != nil {
+		fmt.Println("Error opening log file:", err)
+	}
+	time := time.Now().Format("[02/01/2006 15:04:05] ")
+	if status {
+		file.WriteString(time + "SITE:\t" + site + ", ONLINE \n")
+	} else {
+		file.WriteString(time + "SITE:\t" + site + ", OFFLINE \n")
+	}
+
+	file.Close()
+}
+func verboseLog(text string) {
+	file, err := os.OpenFile(config.FullLogPath, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
+	if err != nil {
+		fmt.Println("Error opening log file:", err)
+	}
+	time := time.Now().Format("[02/01/2006 15:04:05] ")
+	file.WriteString(time + text)
+	file.Close()
 }

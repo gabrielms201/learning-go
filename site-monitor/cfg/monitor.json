@@ -8,5 +8,9 @@
         "https://intelitrader.com.br",
         "non-existent-site",
         "https://AAAAbbbBB.com.br"
-    ]
+    ],
+    "check_number" : 10,
+    "delay_after_check" : 5,
+    "log_path" : "../logs/monitor.log",
+    "full_log_path" : "../logs/monitor_full.log"
 }

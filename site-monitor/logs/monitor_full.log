@@ -1,0 +1,7 @@
+[24/04/2022 00:26:27] Successfully connected to http://www.google.com.br/, with status code 200 
+[24/04/2022 00:26:28] Couldn't connect to https://random-status-code.herokuapp.com/, status code: 404 
+[24/04/2022 00:26:28] Successfully connected to https://www.youtube.com/?gl=BR, with status code 200 
+[24/04/2022 00:26:29] Couldn't connect to https://twitter.com/, status code: 404 
+[24/04/2022 00:26:29] Successfully connected to https://www.intelitrader.com.br/, with status code 200 
+[24/04/2022 00:26:29] An error occurred: Get "non-existent-site": unsupported protocol scheme "" 
+[24/04/2022 00:26:29] An error occurred: Get "https://AAAAbbbBB.com.br": dial tcp: lookup AAAAbbbBB.com.br: no such host 
