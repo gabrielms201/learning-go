@@ -20,6 +20,6 @@ func main() {
 	for !stack.IsEmpty(){
 		fmt.Println(stack.Pop())
 	}
-	// 8,7, 5, 4, 3 1
+	// 8, 7, 5, 4, 3 1
 
 }
